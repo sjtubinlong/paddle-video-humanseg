@@ -87,7 +87,7 @@ if (WIN32)
         add_definitions(-DSTATIC_LIB)
     endif()
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -o2 -fopenmp -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -o2 -fopenmp -std=c++11")
     set(CMAKE_STATIC_LIBRARY_PREFIX "")
 endif()
 
@@ -202,7 +202,11 @@ if(WITH_GPU)
 endif()
 
 if (NOT WIN32)
-    set(EXTERNAL_LIB " -ldl -lrt -lgomp -lz -lm -lpthread -lopencv_world -lopencv_img_hash -lIlmImf -llibpng -lippiw -lippicv -llibtiff -llibwebp -littnotify -llibjasper -llibjpeg -lzlib")
+    set(EXTERNAL_LIB "-ldl -lrt -lgomp -lz -lm -lpthread"
+                      "-lopencv_world -lopencv_img_hash"
+                      "-lIlmImf -llibpng -lippiw -lippicv"
+                      "-llibtiff -llibwebp -littnotify -llibjasper"
+                      "-llibjpeg -lzlib")
     set(DEPS ${DEPS} ${EXTERNAL_LIB})
 endif()
 

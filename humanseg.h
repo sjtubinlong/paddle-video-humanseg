@@ -57,6 +57,7 @@ class HumanSeg {
   std::vector<int> input_shape_;
   std::vector<float> output_data_;
   std::vector<uchar> scoremap_data_;
+  std::vector<uchar> segout_data_;
   std::vector<float> mean_;
   std::vector<float> scale_;
 };

@@ -61,7 +61,7 @@ void HumanSeg::Preprocess(const cv::Mat& image_mat) {
   // Clone the image : keep the original mat for postprocess
   cv::Mat im = image_mat.clone();
   cv::resize(im, im, cv::Size(192, 192), 0.f, 0.f, cv::INTER_LINEAR);
-  
+
   im.convertTo(im, CV_32FC3, 1.0);
   int rc = im.channels();
   int rh = im.rows;
@@ -77,8 +77,7 @@ cv::Mat HumanSeg::Postprocess(const cv::Mat& im) {
   int w = input_shape_[3];
   scoremap_data_.resize(3 * h * w * sizeof(float));
   float* base = output_data_.data() + h * w;
-  for (int i = 0; i < h * w; ++i)
-  {
+  for (int i = 0; i < h * w; ++i) {
     scoremap_data_[i] = uchar(base[i] * 255);
   }
 
@@ -86,10 +85,12 @@ cv::Mat HumanSeg::Postprocess(const cv::Mat& im) {
   im_scoremap.data = scoremap_data_.data();
   cv::resize(im_scoremap, im_scoremap, cv::Size(im.cols, im.rows));
   im_scoremap.convertTo(im_scoremap, CV_32FC1, 1 / 255.0);
-  
-  float* pblob = (float*)im_scoremap.data;
-  unsigned char* seg_result = (unsigned char*)malloc(im.cols * im.rows * sizeof(unsigned char));
-  human_seg::humanseg_postprocess(im.data, pblob, im.rows, im.cols, seg_result);
+
+  float* pblob = reinterpret_cast<float*>(im_scoremap.data);
+  int out_buff_len = im.cols * im.rows * sizeof(uchar);
+  segout_data_.resize(out_buff_len);
+  unsigned char* seg_result = segout_data_.data();
+  MergeProcess(im.data, pblob, im.rows, im.cols, seg_result);
   cv::Mat seg_mat(im.rows, im.cols, CV_8UC1, seg_result);
   cv::resize(seg_mat, seg_mat, cv::Size(im.cols, im.rows));
   cv::GaussianBlur(seg_mat, seg_mat, cv::Size(5, 5), 0, 0);
@@ -97,10 +98,9 @@ cv::Mat HumanSeg::Postprocess(const cv::Mat& im) {
   float bg_threshold = 0.4;
   cv::Mat show_seg_mat;
   seg_mat.convertTo(seg_mat, CV_32FC1, 1 / 255.0);
-  human_seg::threshold_mask(seg_mat, fg_threshold, bg_threshold, show_seg_mat);
-  auto out_im = human_seg::save_seg_res(show_seg_mat, im);
-  cv::imwrite("out.png", out_im);
-  return im_scoremap;
+  ThresholdMask(seg_mat, fg_threshold, bg_threshold, show_seg_mat);
+  auto out_im = MergeSegMat(show_seg_mat, im);
+  return out_im;
 }
 
 cv::Mat HumanSeg::Predict(const cv::Mat& im) {
