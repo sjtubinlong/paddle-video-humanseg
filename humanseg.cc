@@ -75,7 +75,7 @@ void HumanSeg::Preprocess(const cv::Mat& image_mat) {
 cv::Mat HumanSeg::Postprocess(const cv::Mat& im) {
   int h = input_shape_[2];
   int w = input_shape_[3];
-  scoremap_data_.resize(3 * 1025 * 1025* sizeof(float));
+  scoremap_data_.resize(3 * h * w * sizeof(float));
   float* base = output_data_.data() + h * w;
   for (int i = 0; i < h * w; ++i) {
     scoremap_data_[i] = uchar(base[i] * 255);
@@ -87,7 +87,7 @@ cv::Mat HumanSeg::Postprocess(const cv::Mat& im) {
   im_scoremap.convertTo(im_scoremap, CV_32FC1, 1 / 255.0);
 
   float* pblob = reinterpret_cast<float*>(im_scoremap.data);
-  int out_buff_capacity = 10 * 1025 * 1025 * sizeof(float);
+  int out_buff_capacity = 10 * im.cols * im.rows * sizeof(float);
   segout_data_.resize(out_buff_capacity);
   unsigned char* seg_result = segout_data_.data();
   MergeProcess(im.data, pblob, im.rows, im.cols, seg_result);
